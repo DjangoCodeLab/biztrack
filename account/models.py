@@ -21,7 +21,7 @@ class RolePermission(models.Model):
     module = models.ForeignKey(Module,on_delete=models.PROTECT,null=True,blank=True)
     
     class Meta:
-        unique_together = ['role_id','permission_id','module_id']
+        unique_together = ['role','permission','module']
     
     
 class CustomUser(AbstractUser):
