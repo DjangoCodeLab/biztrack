@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from django.contrib.auth import authenticate
 from rest_framework import status
 from collections import defaultdict
+from account.permissions import HasModulePermission
 # Create your views here.
 
 
@@ -15,20 +16,32 @@ class RoleView(ModelViewSet):
     queryset = Roles.objects.all()
     serializer_class = RolesSerializers
     
+    permission_classes = [HasModulePermission]
+    module_name = 'Product' 
+    
     
 class PermissionView(ModelViewSet):
     queryset = Permissions.objects.all()
     serializer_class = PermissionsSerializers
+    
+    permission_classes = [HasModulePermission]
+    module_name = 'Product' 
     
     
 class ModuleView(ModelViewSet):
     queryset = Module.objects.all()
     serializer_class = ModulesSerializers
     
+    permission_classes = [HasModulePermission]
+    module_name = 'Product' 
+    
 
 class RolePermissionView(ModelViewSet):
     queryset = RolePermission.objects.all()
     serializer_class = RolePermissionSerializers
+    
+    permission_classes = [HasModulePermission]
+    module_name = 'Product' 
     
     
 class AuthViewSet(ModelViewSet):
@@ -60,21 +73,9 @@ class AuthViewSet(ModelViewSet):
         
         if user is None:
             return Response({"message":"Invalid Creadentials!"},status=400)
-        print("uesr-------------",user)
-        user = self.queryset.get(email = user)
-        print("user.email,role,------------",user.role_id)
-        role = Roles.objects.get(id = user.role_id.pk)
-        # ''' "permissions": [
-        #     {
-        #     "module": "Products",
-        #     "actions": ["create", "read", "update", "delete"]
-        #     },
-        #     {
-        #     "module": "Orders",
-        #     "actions": ["read", "update"]
-        #     }
-        # ]'''
         
+        user = self.queryset.get(email = user)
+        print("uesr------------------------",user)
         role_permission = RolePermission.objects.filter(role_id = user.role_id.pk).select_related('module','permission') 
         permissions_map = defaultdict(list)
         for rt in role_permission:
@@ -98,6 +99,7 @@ class AuthViewSet(ModelViewSet):
             "message":"Login create Successfully",
             "access":str(refresh.access_token),
             "refresh":str(refresh),
+            "role_id":user.role_id.pk,
             "Role":user.role_id.role_name,
             "permissions":permission
         })
